@@ -1,10 +1,9 @@
-#### Below code for Figure11ABC in the manuscript
-
+#### Below code for Fig7 and Fig.S24 in the manuscript
 pkg = c('readr','dplyr','tidyr','reshape','RColorBrewer','ggplot2','ggpubr','stringr','scales','tibble','kableExtra','formattable','reactable','htmltools',"htmlwidgets","webshot2","heatmaply","circlize","ComplexHeatmap","dendextend")
 suppressPackageStartupMessages(sapply(pkg, require, character = T))
 
 source('Code/Function.R')
-setwd("/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/")
+setwd("/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/")
 wd <- getwd()
 sub.methods <- c("TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
                 "RAIDA","corncob",'MaAsLin2',
@@ -13,10 +12,9 @@ sub.methods <- c("TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+
 sub.methods1 <- c('GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
                  "RAIDA","corncob",'MaAsLin2',
                  "ANCOM-BC","DACOMP","LDM","Omnibus",'ZicoSeq', "Aldex2(Wilcox)","GMPR+glm","eBay(Wilcox)")
-selected <- read_csv("Data/realdataanalysis/dataset_107res/select.txt", col_names = FALSE)
-files <- gsub('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/dataset_107res/','',selected$X1)
+selected <- read_csv("Data/realdataanalysis/dataset_106res/select.txt", col_names = FALSE)
+files <- gsub('/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/dataset_106res/','',selected$X1)
 
-# files <- list.files('Data/realdataanalysis/dataset_107res/', pattern = 'Rdata$')
 for(fdr in c(0.05, 0.1, 0.2)){
   RES <- name <- PCTs <- NULL;RESS <- OVERLAP <- jacrd <- RES.SUM <-failure <-  list();dist.mat <- list()
   for(i in 1:length(files)){
@@ -116,26 +114,15 @@ for(fdr in c(0.05, 0.1, 0.2)){
 }
 
 
-
-## Check failing of ZicoSeq in which dataset
-txt <- NULL
-for(i in 1:length(RES.SUM)){
-  df = RES.SUM[[i]][,'ZicoSeq']
-  if(length(grep('NA',df))>0){
-    txt <- c(txt, files[i])
-    cat(files[i],':',length(grep('NA',df)),'\n')
-  }
-}
-
 ###################
-## Figure 11b overlap at 0.05, 0.1, 0.2 levels, exclude TSS+Wilcox and Rarefy+Wilcox to decrease bias
+## Fig.7b overlap at 0.05, 0.1, 0.2 levels, exclude TSS+Wilcox and Rarefy+Wilcox to decrease bias
 output = paste0(wd,'/Result/realdataanalysis/Figure11b/');if(!(dir.exists(output))){dir.create(output)}
 sub.methods <- c('GMPR+Wilcox','GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',"RAIDA",
                   "ANCOM-BC","DACOMP","LDM","Omnibus",'ZicoSeq',
                   "corncob",'MaAsLin2',"Aldex2(Wilcox)","GMPR+glm","eBay(Wilcox)")
 
 for(fdr in c(0.05)){
-  load(paste0(wd,'/Data/realdataanalysis/alldata_',fdr,'_res_norarefy.Rdata'))
+  tmp <- load(paste0(wd,'/Data/realdataanalysis/alldata_',fdr,'_res_norarefy.Rdata'))
   ## overlap figure
   for(i in 1:length(OVERLAP)){
     n= sum(is.na(OVERLAP[[i]]))
@@ -192,39 +179,35 @@ for(fdr in c(0.05)){
   
   df <- as.matrix(mean.overlap)
   html_file <- paste0(output,'overlap_fdr_',fdr,'.html')
+  
   tb <- heatmaply_cor(
     df,colors = rev(brewer.pal(11, 'RdYlGn')),
-    point_size_mat = mean.overlap,
+    point_size_mat = mean.overlap,#plot_method="plotly", 
     limits = c(0,1), 
     node_type = "scatter", 
     trace = "none",margins = c(40, 40, 40, 40),
-    dist_method = NULL,fontsize_col = 14,fontsize_row = 14,
-    heatmap_layers = theme(axis.text=element_text(colour="black", family = 'Arial', angle = 90)),
-    hclust_method = "complete")
+    dist_method = NULL,fontsize_col = 22,fontsize_row = 22,
+    heatmap_layers = theme(axis.text=element_text(colour="black", family = 'Arial')),
+    hclust_method = "complete") %>% 
+    plotly::layout(showlegend = FALSE, legend = FALSE, annotations = list(visible = FALSE))
   saveWidget(widget = tb, file = html_file, selfcontained = TRUE)
-  
-  img_file <- paste0(output,'Figure11B.png')
-  webshot(url = html_file, file = img_file, vwidth = 900, vheight = 800, zoom = 2)
+  img_file <- paste0(output,'Figure7b.png')
+  webshot(url = html_file, file = img_file, vwidth = 1000, vheight = 800, zoom =5)
 }
 
 
-
-
-
 sub.methods <- c("TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
-                  "RAIDA","corncob",'MaAsLin2',
-                  "ANCOM-BC","DACOMP","LDM","Omnibus",'ZicoSeq', "Aldex2(Wilcox)","GMPR+glm","eBay(Wilcox)")
+                  "RAIDA","corncob",'MaAsLin2', "ANCOM-BC","DACOMP","LDM","Omnibus",'ZicoSeq', "Aldex2(Wilcox)","GMPR+glm","eBay(Wilcox)")
 
 load(paste0(wd,'/Data/realdataanalysis/alldata_0.05_res_norarefy.Rdata'))
 colnames(RES) <- gsub('Beta-binomial','corncob',colnames(RES))
-## importing dataset information table
+## import dataset information table
 datainfo <- read.csv(paste0(wd,'/Data/realdataanalysis/SampleTaxaAlpha.csv'), row.names = 1)
 rownames(datainfo) <- NULL
 colnames(datainfo) <- c("data","Alpha diversity", "Taxa number","Sample size" )
 
 sort(apply(RES, 2, function(x) mean(x)))
 sort(apply(RES, 2, function(x) median(x)))
-
 
 RES2 <- as.data.frame(t(apply(RES, 1,function(x) scale(x, scale = T, center = T))))
 rownames(RES2) <- gsub('_res','',rownames(RES))
@@ -241,11 +224,10 @@ RES2 <- RES2[rownames(datainfo1),,drop =F] %>% na.omit()
 RES2 = RES2[,sub.methods]
 dim(RES2)
 datainfo1 <- datainfo1[rownames(RES2),,drop=F]
-# write.csv(datainfo1, file = '/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/106Realdata.csv')
+# write.csv(datainfo1, file = '/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/106Realdata.csv')
 col_fun = colorRamp2(c(seq(min(RES2),0, len = 9), 0,seq(0, max(RES2),len = 9)), c(rev(brewer.pal(9, 'YlGn')), "white", brewer.pal(9, 'YlOrRd')))
 
 col_fun_sample = colorRamp2(c(10,50,100,200,400,500,700,1000,1800), brewer.pal(9, 'Purples'))
-# colorRamp2(c(seq(min(datainfo1$`Sample size`),median(datainfo1$`Sample size`)*0.95,len = 4),median(datainfo1$`Sample size`),seq(median(datainfo1$`Sample size`) *1.1,max(datainfo1$`Sample size`), len = 3)), c(brewer.pal(9, 'Reds')[2:5],brewer.pal(9, 'Reds')[6],brewer.pal(9, 'Reds')[7:9]))
 col_fun_taxa = colorRamp2(c(seq(min(datainfo1$`Taxa number`),median(datainfo1$`Taxa number`)*0.95,len = 4),
                             median(datainfo1$`Taxa number`),seq(median(datainfo1$`Taxa number`) *1.1,max(datainfo1$`Taxa number`), len = 3)), c(brewer.pal(9, 'Blues')[2:5],brewer.pal(9, 'Blues')[5],brewer.pal(9, 'Blues')[7:9]))
 col_fun_alpha = colorRamp2(c(seq(min(datainfo1$`Alpha diversity`),median(datainfo1$`Alpha diversity`)*0.95,len = 4),
@@ -266,7 +248,7 @@ ht <- Heatmap(as.matrix(RES2), heatmap_legend_param = list(title = 'Standardized
               border = T,rect_gp = gpar(col = "black", lwd = 0.5), show_row_dend =F, bottom_annotation = column_ha, 
               left_annotation = ha)
 ht
-pdf(paste0(wd,'/result/realdataanalysis/Figure11a.pdf'),width = 6, height = 13)
+pdf(paste0(wd,'/result/realdataanalysis/Figure7a.pdf'),width = 6, height = 13)
 draw(ht)#, heatmap_legend_side = "left", annotation_legend_side = "right", annotation_legend_list = lgd
 dev.off()
 dim(RES2)
@@ -287,10 +269,7 @@ fails
 
 
 ###############
-## Figure11C: covaerage
-## RES.SUM is the list contains all res files for selected methods
-## for all methods
-length(sub.methods)
+## Fig.7c: covaerage
 overlap <- coverage <- list()
 for(i in 1:length(RES.SUM)){
   for(fdr in c(0.05, 0.1, 0.2)){
@@ -312,12 +291,9 @@ for(i in 1:length(RES.SUM)){
 coverage1 <- melt(coverage)
 coverage1$value <- (coverage1$value)*100
 colnames(coverage1) <- c('coverage','dataset_fdr')
-head(coverage1)
 coverage1$dataset <- gsub('\\_.*','',coverage1$dataset_fdr)
 coverage1$fdr <- gsub('.*_','',coverage1$dataset_fdr)
-head(coverage1)
 coverage1 <- coverage1[,-2]
-head(coverage1)
 aggregate(coverage ~fdr, coverage1, function(x)mean(x))
 aggregate(coverage ~fdr, coverage1, function(x)median(x))
 summary(coverage1[coverage1$fdr==0.05,][,1])
@@ -330,8 +306,6 @@ ggplot(coverage1, aes(x = fdr, y = coverage, color = fdr)) +
   geom_boxplot() +
   geom_jitter(aes(colour = fdr), width = 0.25) +
   scale_color_manual(values = c('forestgreen','orange','red')) + 
-  # geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.4, size = 0.5,position=position_dodge2(.7, preserve = "single")) +
-  # scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) + 
   labs(y = 'coverage,%', x = 'FDR', color = "", fill = '') +
   theme(axis.text.x = element_text(color="black", size =26),
         axis.text.y = element_text(color="black", size = 26),
@@ -344,7 +318,185 @@ ggplot(coverage1, aes(x = fdr, y = coverage, color = fdr)) +
         legend.title=element_text(size=30),
         legend.text = element_text(size=20),
         plot.title = element_text(size=22))
-ggsave(paste0(wd,'/result/realdataanalysis/Figure11C.pdf'), width = 6,height = 5)
+ggsave(paste0(wd,'/result/realdataanalysis/Figure7c.pdf'), width = 6,height = 5)
+
+
+
+
+#### Below code for Fig.7d and FigureS24 in the manuscript: shuffle
+
+pkg = c('readr','dplyr','tidyr','reshape','RColorBrewer','ggplot2','ggpubr','stringr','scales','tibble','kableExtra','formattable','reactable','htmltools',"htmlwidgets","webshot2","heatmaply","circlize")
+suppressPackageStartupMessages(sapply(pkg, require, character = T))
+setwd("/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/")
+wd <- getwd()
+source('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Code/Function.R')
+sub.methods <- c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR',
+                 'Wrench+MSeq',"RAIDA","corncob",'MaAsLin2',"ANCOM-BC",
+                 "DACOMP","LDM","Omnibus",'ZicoSeq', "Aldex2(Wilcox)","GMPR+glm","eBay(Wilcox)")
+
+
+
+# files <- list.files('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/shuffle/',pattern = 'Rdata$')
+# f <- NULL
+# for(i in 1:length(files)){
+#   sub <- strsplit(files[i],split= '_')[[1]]
+#   unique_data <- paste0(sub[!(sub %in% tail(sub, n=2))], collapse = '_')
+#   iter <- head(tail(sub, n=2),1)
+#   f <- c(f, unique_data)
+# }
+# f1 <- unique(f)
+
+selected <- read_csv("/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/dataset_107res/select.txt", col_names = FALSE)
+f1 <- gsub('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/dataset_107res/','',selected$X1)
+f1 = gsub('_res.Rdata','',f1)
+
+SIG <- list();iter_file <- NULL
+for(f in f1){
+  for(j in 1:50){
+    try({
+      load(paste0('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/shuffle/new/',f,'_',j,'_res.Rdata'))
+      idx <- c('taxa',colnames(res.sum)[grep('fdr',colnames(res.sum))])
+      cat(f, '\n')
+      res <- as.data.frame(res.sum[,idx]) %>% column_to_rownames('taxa')
+      colnames(res) <- gsub('fdr.','',colnames(res))
+      colnames(res)[colnames(res) =='Wilcox'] = 'TSS+Wilcox'
+      colnames(res)[colnames(res) =='Rarefy'] = 'Rarefy+Wilcox'
+      colnames(res) = gsub('ANCOMBC','ANCOM-BC',colnames(res))
+      colnames(res) = gsub('glmquassi','GMPR+glm',colnames(res))
+      colnames(res) = gsub('DESeq2.gmpr','GMPR+DESeq2',colnames(res))
+      colnames(res) = gsub('DESeq2.Wrench','Wrench+DESeq2',colnames(res))
+      colnames(res) = gsub('edgeR.gmpr','GMPR+edgeR',colnames(res))
+      colnames(res) = gsub('edgeR.Wrench','Wrench+edgeR',colnames(res))
+      colnames(res) = gsub('^MSeq2.Wrench$','Wrench+MSeq',colnames(res))
+      colnames(res) = gsub('^MSeq2$','MSeq',colnames(res))
+      colnames(res) = gsub('eBayW','eBay(Wilcox)',colnames(res))
+      colnames(res) = gsub('eBayt','eBay(t-test)',colnames(res))
+      colnames(res) = gsub('BBinomial','corncob',colnames(res))
+      colnames(res) = gsub('Aldex2we','Aldex2(t-test)',colnames(res))
+      colnames(res) = gsub('^Aldex2$','Aldex2(Wilcox)',colnames(res))
+      colnames(res) = gsub('^mbzinb','Omnibus',colnames(res))
+      colnames(res) = gsub('^Wilcox.Wrench','Wrench+Wilcox',colnames(res))
+      colnames(res) = gsub('^Wilcox.gmpr','GMPR+Wilcox',colnames(res))
+      colnames(res) = gsub('Maaslin2','MaAsLin2',colnames(res))
+      
+      
+      # len <- sub.methods[!(sub.methods %in% colnames(res))]
+      # if(length(len) > 0){
+      #   for(k in 1:length(len)){
+      #     res[,len[k]] <- rep(1, nrow(res))
+      #   }
+      # }
+      
+      res[is.na(res)] <- 1
+      res[grep('NA',res)] <- 1
+      len <- sub.methods[(sub.methods %in% colnames(res))]
+      
+      res <- res[,len]
+      
+      sig <- apply(res, 2, function(x) sum(x <=0.05))
+      iter_file <- c(iter_file, paste0(f,'.',j))
+      
+      
+      sig0 = as.data.frame(sig)
+      colnames(sig0) = paste0(f,'.',j)
+      sig0 = sig0 %>% rownames_to_column('method')
+      
+      SIG[[paste0(f,'.',j)]] <- sig0
+      # SIG <- rbind(SIG, sig)
+    })
+  }
+}
+
+
+
+d1 <- SIG[[1]]
+for(i in 2:length(SIG)){
+  d1 <- full_join(d1, SIG[[i]])
+}
+
+dim(d1)
+d1[1:5,1:5]
+save(SIG,iter_file,d1, file = '~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/realshuffle_res_new.Rdata')
+
+
+
+
+load('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/realshuffle_res.Rdata')
+datasetinfo <- read.csv('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/realdataanalysis/106Realdata.csv')
+colnames(datasetinfo)[1] <- 'dataset'
+dd <- as.data.frame(t(d1 %>% column_to_rownames('method'))) %>% rownames_to_column('class')
+dd$dataset <- gsub('\\..*','',dd$class);length(unique(dd$dataset))
+dd <- dd %>% filter(dataset %in% datasetinfo$dataset)
+dd1 <- dd %>% filter(dataset %in% datasetinfo$dataset) %>% right_join(datasetinfo %>% dplyr::select(dataset,Taxa.number ))
+head(dd1);length(unique(dd1$dataset))
+dd.pct <- as.data.frame(apply(dd1[,-c(1,ncol(dd1), ncol(dd1)-1)], 2, function(x) x/dd1[,ncol(dd1)]))
+rownames(dd.pct) <- NULL
+rownames(dd.pct) <- as.character(dd1$class)
+# dd.pct$dataset <- gsub('\\..*','',rownames(dd.pct))
+# rownames(dd.pct) <- NULL
+head(dd.pct)
+
+m <- apply(dd.pct, 2, function(x) mean(x[!is.na(x)]))
+md <- apply(dd.pct, 2, function(x) median(x[!is.na(x)]))
+se <- apply(dd.pct, 2, function(x) sd(x[!is.na(x)]) / sqrt(length(x[!is.na(x)])))
+ymin <- m - 1.96 * se
+ymin <- ifelse(ymin > 0, ymin, 0)
+ymax <- m + 1.96 * se
+dd.sum <- as.data.frame(cbind(mean= m, median=md, ymin, ymax)) %>% rownames_to_column('methods')
+head(dd.sum);dim(dd.sum)
+
+
+ggplot(dd.sum, aes(x = reorder(methods, mean), y = mean*100, fill = methods)) + geom_bar(stat = 'identity') +
+  geom_errorbar(aes(ymax=ymax*100, ymin=ymin*100, linetype = NULL),  width=0.7, size = 0.2,position=position_dodge2(.7, preserve = "single")) +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4,color = 'black', size = 16),
+        axis.text.y = element_text(color = 'black', size = 20),
+        plot.title = element_text(size=16),
+        plot.background = element_blank(),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title.y = element_text(color = 'black', size = 20), legend.position = 'none') +
+  labs(y = '% of differential taxa', x = '', title = 'Supplementary Figure 10')
+ggsave('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Result/SupplementaryFigure24.pdf', width =6, height = 6)
+
+
+## false discover iteration
+ff <- dd
+ff$iter <- gsub('.*\\.','', ff$class)
+ff$dataset <- gsub('\\..*','', ff$class)
+head(ff);length(unique(ff$dataset))
+ff <- ff %>% dplyr::select(-class)
+ff[,-c(ncol(ff):(ncol(ff)-1))] <- apply(ff[,-c(ncol(ff):(ncol(ff)-1))], 2, function(x) ifelse(x>0,1, 0))
+ff1 <- aggregate(.~ dataset, ff%>% dplyr::select(-iter), function(x) sum(x[!is.na(x)]==1)/length(x[!is.na(x)]))
+setdiff(unique(ff$dataset),ff1$dataset)
+
+ff[is.na(ff)] <- -1
+ff1 <- aggregate(.~ dataset, ff%>% dplyr::select(-iter), function(x) sum(x==1)/length(x[x!= -1]))
+dim(ff1)
+ff1.m <- melt(ff1) %>% na.omit()
+head(ff1.m)
+ff1.m1 = aggregate(value ~ variable,ff1.m, function(x) mean(x))
+ff1.m1 = ff1.m1[order(ff1.m1$value),]
+head(ff1.m1)
+ggplot(ff1.m1, aes(x = reorder(variable, value), y = value, fill = variable)) + geom_bar(stat = 'identity') +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4,color = 'black', size = 14),
+        axis.text.y = element_text(color = 'black', size = 14),
+        axis.title.y = element_text(color = 'black', size = 14),
+        legend.position = 'none') +
+  geom_hline(yintercept = 0.05, color = 'forestgreen',linetype='dashed') + 
+  geom_hline(yintercept = 0.1, color = 'yellow',linetype='dashed') + 
+  geom_hline(yintercept = 0.2, color = 'red',linetype='dashed') + 
+  scale_y_continuous(breaks=c(0.05, 0.1,0.2,0.5,0.75)) + 
+  labs(y = 'Observed FDR', x = '', fill = '')
+ggsave('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Result/realdataanalysis/Figure7d.pdf', width = 4, height = 6)
+
+
+
+
 
 
 

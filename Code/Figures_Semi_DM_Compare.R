@@ -1,4 +1,4 @@
-#### Below code for Figure1-2_Supplementary Figure 2-3 in the manuscript
+#### Below code for FigureS7-8-9 in the manuscript for comparison of DM and SemiSimulation framework
 
 pkg =  c('plyr','scales','ggpubr','microbiome',"eBay","modeest","ANCOMBC","aod","phyloseq","reshape","corncob","MASS","readr","DESeq2", "ALDEx2", "metagenomeSeq", "edgeR", "GUniFrac", "grDevices", "dirmult", "exactRankTests","nlme", "dplyr", "magrittr", "tidyr", "protoclust", "ggplot2", "compositions","rmutil","tibble","reticulate","dacomp","LDM","Wrench")
 sapply(pkg, require, character = TRUE)
@@ -7,61 +7,61 @@ setwd("/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/")
 wd = getwd()
 
 
-# source(paste0(wd,'/code/Func.R'))
-# QC <- function(otu.tab, prev = 0.1, minp = 0.002){
-#   prop = t(t(otu.tab)/colSums(otu.tab))
-#   prop <- prop[rowSums(prop!=0) > prev * ncol(prop), , drop=FALSE]
-#   otu.tab <- otu.tab[rownames(prop), , drop=FALSE]
-#   
-#   prop <- prop[rowMaxs(prop) > minp, , drop=FALSE]
-#   otu.tab <- otu.tab[rownames(prop), , drop=FALSE]
-#   
-#   idx.f <- which(colSums(otu.tab)>1000)
-#   # idx.f <- apply(otu.tab, 1, function(x) sum(x > 2)) > round(ncol(otu.tab) * 0.05)
-#   otu.tab <- otu.tab[,idx.f]
-#   return(otu.tab = otu.tab)
-# }
-# 
-# 
-# load(paste0(wd,'/data/CompareDMandSemiparametric/Stool_V35.RData')) # OTU dataset
-# load(paste0(wd,'/data/CompareDMandSemiparametric/Stool_V35_dirmult.Rdata')) # For saving computational time, already prepared dirmult.paras
-# otu.tab = Stool_V35
-# name = 'Stool'
-# otu.tab <- QC(otu.tab = otu.tab)
-# 
-# name = 'UrogenitalTract'
-# load(paste0(wd,'/data/CompareDMandSemiparametric/','Semi_',name,'.Rdata'))
-# load(paste0(wd,'/data/CompareDMandSemiparametric/','DM_',name,'.Rdata'))
+source(paste0(wd,'/code/Func.R'))
+QC <- function(otu.tab, prev = 0.1, minp = 0.002){
+  prop = t(t(otu.tab)/colSums(otu.tab))
+  prop <- prop[rowSums(prop!=0) > prev * ncol(prop), , drop=FALSE]
+  otu.tab <- otu.tab[rownames(prop), , drop=FALSE]
 
-## SemiSimulation 
-# nOTU = 'nOTU_L5'
-# nSam = 'nSam_L1'
-# diff.otu.pct= 'low'
-# diff.otu.mode = 'abundant'
-# diff.otu.direct = 'balanced'
-# covariate.type = 'binary'
-# covariate.eff.mean = 'none'
-# confounder.type = 'none'
-# depth.mu = 'D3'
-# depth.conf.factor = 'none'
-# include.top.otu = FALSE
-# model = 'loglinear'
-# nSub = 'Sub_L1'
-# model.paras = NULL
-# par(mfrow = c(2,2))
-# Sim.obj <- SimulateSeq(otu.tab = otu.tab,
-#                        nOTU = nOTU, diff.otu.pct = diff.otu.pct, diff.otu.direct = diff.otu.direct, diff.otu.mode = diff.otu.mode,
-#                        covariate.type = covariate.type, covariate.eff.mean = covariate.eff.mean, confounder.type = confounder.type, depth.mu =depth.mu, depth.conf.factor = depth.conf.factor,
-#                        model = model, nSub = nSub,include.top.otu = include.top.otu)
-# otu.tab.dir <- Sim.obj$otu.tab.sim
-# save(Sim.obj, file = paste0('Semi_',name,'.Rdata'))
+  prop <- prop[rowMaxs(prop) > minp, , drop=FALSE]
+  otu.tab <- otu.tab[rownames(prop), , drop=FALSE]
+
+  idx.f <- which(colSums(otu.tab)>1000)
+  # idx.f <- apply(otu.tab, 1, function(x) sum(x > 2)) > round(ncol(otu.tab) * 0.05)
+  otu.tab <- otu.tab[,idx.f]
+  return(otu.tab = otu.tab)
+}
+
+
+load(paste0(wd,'/data/CompareDMandSemiparametric/Stool_V35.RData')) # OTU dataset
+load(paste0(wd,'/data/CompareDMandSemiparametric/Stool_V35_dirmult.Rdata')) # For saving computational time, already prepared dirmult.paras
+otu.tab = Stool_V35
+name = 'Stool'
+otu.tab <- QC(otu.tab = otu.tab)
+
+name = 'UrogenitalTract'
+load(paste0(wd,'/data/CompareDMandSemiparametric/','Semi_',name,'.Rdata'))
+load(paste0(wd,'/data/CompareDMandSemiparametric/','DM_',name,'.Rdata'))
+
+## SemiSimulation
+nOTU = 'nOTU_L5'
+nSam = 'nSam_L1'
+diff.otu.pct= 'low'
+diff.otu.mode = 'abundant'
+diff.otu.direct = 'balanced'
+covariate.type = 'binary'
+covariate.eff.mean = 'none'
+confounder.type = 'none'
+depth.mu = 'D3'
+depth.conf.factor = 'none'
+include.top.otu = FALSE
+model = 'loglinear'
+nSub = 'Sub_L1'
+model.paras = NULL
+par(mfrow = c(2,2))
+Sim.obj <- SimulateSeq(otu.tab = otu.tab,
+                       nOTU = nOTU, diff.otu.pct = diff.otu.pct, diff.otu.direct = diff.otu.direct, diff.otu.mode = diff.otu.mode,
+                       covariate.type = covariate.type, covariate.eff.mean = covariate.eff.mean, confounder.type = confounder.type, depth.mu =depth.mu, depth.conf.factor = depth.conf.factor,
+                       model = model, nSub = nSub,include.top.otu = include.top.otu)
+otu.tab.dir <- Sim.obj$otu.tab.sim
+save(Sim.obj, file = paste0('Semi_',name,'.Rdata'))
 
 ## Dirichlet multinomial Simulation
-# source('code/Func_DM.R')
-# data <- SimulateMSeq(otu.tab = otu.tab, diff.otu.mode = 'abundant', diff.otu.direct = 'balanced', covariate.type = 'binary',
-#                      covariate.eff.mean = 0, confounder.eff.mean = 0, depth.mu = 10000, zinfl.otu.pct = 0)
-# otu.tab.DM <- data$otu.tab.sim
-# save(data, file = paste0('DM_',name,'.Rdata'))
+source('code/Func_DM.R')
+data <- SimulateMSeq(otu.tab = otu.tab, diff.otu.mode = 'abundant', diff.otu.direct = 'balanced', covariate.type = 'binary',
+                     covariate.eff.mean = 0, confounder.eff.mean = 0, depth.mu = 10000, zinfl.otu.pct = 0)
+otu.tab.DM <- data$otu.tab.sim
+save(data, file = paste0('DM_',name,'.Rdata'))
 
 
 

@@ -71,7 +71,7 @@ EstPara <- function (otu.tab, dirmult.paras) {
   return(list(mu = otu.tab.p, otu.tab = otu.tab0))
 }
 
-## Little different from the general simulation function in cluster, since we want to make the nOTU and nSam is the same as the nrow/ncol of the input otu.tab
+
 SimulateSeq <- function (
   # Input data
   otu.tab, model.paras = NULL, 

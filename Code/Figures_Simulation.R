@@ -1,31 +1,32 @@
 ### code for produce Figure 3-10, Supplementary Figure 4-9 in the manuscript
-
 pkg = c('dplyr','tidyr','reshape','RColorBrewer','ggplot2','ggpubr','stringr','scales','tibble','kableExtra','formattable','reactable','htmltools',"htmlwidgets","webshot2")
 suppressPackageStartupMessages(sapply(pkg, require, character = T))
 
-
-setwd('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/')
+root <- '/Users/m216453'
+setwd(paste0(root,'/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/'))
 wd = getwd()
-source('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Code/Function.R')
-output = paste0(wd,'/Result/SimulationEvaluation/')
+source(paste0(root,'/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Code/Function.R'))
+output = paste0(wd,'/Result/SimulationEvaluation07192022/')
 
 ##############################
-## Figure 3
+## Fig. 1
 sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
-                "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus",'MaAsLin2',
+                "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus",'MaAsLin2','ZINQ','fastANCOM','IFAA','RDB',
                 "Aldex2(Wilcox)","GMPR+glm","corncob","eBay(Wilcox)")
-data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods)
-data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods)
+data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods, root = root)
+data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods, root = root)
 
 data <- rbind(data.C1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>% mutate(depth.conf.factors ='Stool'),
               data.D1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>%mutate(depth.conf.factors ='Vaginal'))
+
+head(data);dim(data)
 plot_FDR_kable(data, covariate.type='binary',kable.methods=sub.methods, type.name = 'Stool',output = output)
 
 ##############################
-#### Supplemnetary Figure 4 : wrench vs default for DESeq2 and edgeR
+#### Figure S11 : wrench vs default for DESeq2 and edgeR
 sub.methods = c('GMPR+DESeq2','DESeq2','edgeR','GMPR+edgeR')
-data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods)
-data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods)
+data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods, root = root)
+data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods, root = root)
 
 data <- rbind(data.C1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>% mutate(depth.conf.factors ='Stool'),
               data.D1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>%mutate(depth.conf.factors ='Vaginal')) %>% 
@@ -39,11 +40,12 @@ df <- data_summary(data, ct~ depth.conf.factors + nOTUs + nSams + methods)
 df$methods <- as.factor(df$methods)
 df <- within(df, methods <- factor(methods, levels=c("DESeq2","GMPR+DESeq2","edgeR",'GMPR+edgeR')))
 head(df)
+
 ggplot(df, aes(x = nOTUs, y = ct,  fill = methods)) +
   theme_bw() +
   geom_bar(position = position_dodge2(width = 0.7, preserve = "single"), stat="identity", width = 0.7) +
   geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,position=position_dodge2(.7, preserve = "single")) +
-  scale_fill_manual(values = cols) +
+  scale_fill_manual(values = cols[sub.methods]) +
   # scale_y_continuous(limits = c(0,1),expand = c(0.1, 0, 0, 0)) +
   facet_grid(nSams~depth.conf.factors, scales = 'free_y')+
   labs(y = 'FDR', x = '', color = "", fill = '') +
@@ -58,7 +60,7 @@ ggplot(df, aes(x = nOTUs, y = ct,  fill = methods)) +
         legend.title=element_text(size=30),
         legend.text = element_text(size=20),
         plot.title = element_text(size=22))
-ggsave(paste0(output,'NULL/','SupplementaryFigure4.pdf'), width =12, height = 7)
+ggsave(paste0(output,'NULL/','SupplementaryFigure11.pdf'), width =12, height = 7)
 
 
 
@@ -71,8 +73,8 @@ sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox',
                 "GMPR+glm","Aldex2(Wilcox)","GMPR+glm",
                 "corncob","eBay(Wilcox)")
 covariate.type = 'binary'
-output = paste0(wd,'/Result/SimulationEvaluation/Figure4/');if(!(dir.exists(output))){dir.create(output)}
-##  balanced change: moderate: stool/vaginal
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure4/');if(!(dir.exists(output))){dir.create(output)}
+##  Fig 2ab. balanced change: moderate: stool/vaginal
 # Stool
 res.obj1 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
                      output = output, filename = 'C4', factor ='nOTUs', covariate.type =covariate.type, sub.level ='nOTU_L5', 
@@ -86,8 +88,8 @@ plot.reactable8a(res.df2= res.obj2$res.df2, factor ='nOTUs',diff.otu.mode =c('Ab
 
 
 
-## Figure 5. Unbalanced change: moderate: stool/vaginal
-output = paste0(wd,'/Result/SimulationEvaluation/Figure5/');if(!(dir.exists(output))){dir.create(output)}
+## Fig 2cd. Unbalanced change: moderate: stool/vaginal
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure5/');if(!(dir.exists(output))){dir.create(output)}
 # Stool
 res.obj1 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
                        output = output ,filename = 'C54', factor ='nOTUs', 
@@ -103,8 +105,8 @@ res.obj2 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
 plot.reactable7b(res.df2= res.obj2$res.df2, factor ='nOTUs',diff.otu.mode =c('Abundant'),output =output, name = 'B.Moderate.Vaginal')
 
 
-## Supplementary Figure 5
-output = paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure5/');if(!(dir.exists(output))){dir.create(output)}
+## Fig S13
+output = paste0(wd,'/Result/SimulationEvaluation07192022/SupplementaryFigure5/');if(!(dir.exists(output))){dir.create(output)}
 ## ------combine stool and vaginal: small sample; OTU = 500; sample =50; effectsize = L3
 res.obj1 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
                      output = output ,filename = 'C2', factor ='nSams', 
@@ -133,8 +135,8 @@ plot.reactable7b(res.df2= res.obj2$res.df2, factor ='nSams',  diff.otu.mode =c('
 
 
 
-## Supplementary Figure 6
-output = paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure6/');if(!(dir.exists(output))){dir.create(output)}
+## Fig S14
+output = paste0(wd,'/Result/SimulationEvaluation07192022/SupplementaryFigure6/');if(!(dir.exists(output))){dir.create(output)}
 ## ------combine stool and vaginal: small OTU; OTU = 50; sample =100; effectsize = L3
 res.obj1 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
                        output = output ,filename = 'C4', factor ='nOTUs', 
@@ -163,10 +165,10 @@ plot.reactable7b(res.df2= res.obj2$res.df2, factor ='nOTUs', diff.otu.mode =c('A
 
 
 ##############################
-## Figure 6: ZicoSeq NULL setting
+## FigS15: ZicoSeq NULL setting
 sub.methods = c('ZicoSeq')
-data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods)
-data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods)
+data.C1 <- clean_null(name = 'C0', type.name = 'Stool', sub.methods = sub.methods, root = root)
+data.D1 <- clean_null(name = 'D0', type.name = 'Vaginal', sub.methods = sub.methods, root = root)
 
 df <- rbind(data.C1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>% mutate(depth.conf.factors ='Stool'),
               data.D1 %>% dplyr::filter(depth.conf.factors=='None') %>% dplyr::select(-depth.conf.factors) %>%mutate(depth.conf.factors ='Vaginal')) %>% 
@@ -195,12 +197,12 @@ ggplot(df, aes(x = nOTUs, y = ct,  fill = methods)) +
         legend.title=element_text(size=30),
         legend.text = element_text(size=20),legend.position = 'none',
         plot.title = element_text(size=22))
-ggsave(paste0(output,'NULL/','Figure6.pdf'), width =9, height = 7)
+ggsave(paste0(root,"/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Result/SimulationEvaluation07192022/NULL/",'FigS15.pdf'), width =9, height = 7)
 
 
 ##############################
-output = paste0(wd,'/Result/SimulationEvaluation/Figure7/');if(!(dir.exists(output))){dir.create(output)}
-## Figure 7: ZicoSeq compare to others
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure7/');if(!(dir.exists(output))){dir.create(output)}
+## Fig3: ZicoSeq compare to others
 sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq','ZicoSeq',
                 "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus",'MaAsLin2',"GMPR+glm","Aldex2(Wilcox)","GMPR+glm","corncob","eBay(Wilcox)")
 # Stool - binary --Balanced
@@ -310,11 +312,11 @@ plot.reactable0222(res.obj, best, output =output, factor = 'nSams',name = paste0
 
 
 ##############################
-output = paste0(wd,'/Result/SimulationEvaluation/Figure8/');if(!(dir.exists(output))){dir.create(output)}
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure8/');if(!(dir.exists(output))){dir.create(output)}
 sub.methods1 = c('GMPR+DESeq2','GMPR+edgeR',"ANCOM-BC","LDM","Aldex2(glm)","GMPR+glm",'MaAsLin2',"corncob",'ZicoSeq')
-## binary + covariate: non-compositional
+## Fig 4: binary + covariate: non-compositional
 # Stool
-res.obj1 <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
+res.obj1 <- clean_data(dir = paste0(wd,'/Data/SimulationEvaluation/'),
                        output = output, filename = 'C4C', factor ='nOTUs', covariate.type =covariate.type, sub.level ='nOTU_L5', 
                        sub.level.rename = "OTU=500",sub.methods = sub.methods1)
 plot.reactable8a(res.df2= res.obj1$res.df2, factor ='nOTUs',diff.otu.mode =c('Abundant','Rare'), output =output, name = 'A.Moderate.Binary+covariate.Stool')
@@ -344,25 +346,25 @@ plot.reactable7b(res.df2= res.obj2$res.df2, factor ='nOTUs',diff.otu.mode =c('Ab
 
 
 ##############################
-##Figure 9: Depth Confounding
-output = paste0(wd,'/Result/SimulationEvaluation/Figure9/');if(!(dir.exists(output))){dir.create(output)}
-res.obj1 <- clean_data(dir = '~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',
+##Fig 5: Depth Confounding
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure9/');if(!(dir.exists(output))){dir.create(output)}
+res.obj1 <- clean_data(dir = paste0(wd,'/Data/SimulationEvaluation/'),
                        output = output ,filename = 'C7', factor ='depth.conf.factors',
                        covariate.type ='binary', sub.level ='DL1',
                        sub.level.rename = 'Depth confounding +',sub.methods = sub.methods)
-plot.reactable8a(res.df2= res.obj1$res.df2, factor ='depth.conf.factors', diff.otu.mode =c('Abundant','Rare'),output =output, name = 'Figure9.DepthCounfounding.Stool+')
+plot.reactable8a(res.df2= res.obj1$res.df2, factor ='depth.conf.factors', diff.otu.mode =c('Abundant','Rare'),output =output, name = 'Fig5.DepthCounfounding.Stool+')
 
-output = paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure7/');if(!(dir.exists(output))){dir.create(output)}
-res.obj1 <- clean_data(dir = '~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',
+output = paste0(wd,'/Result/SimulationEvaluation07192022/FigureS20/');if(!(dir.exists(output))){dir.create(output)}
+res.obj1 <- clean_data(dir = paste0(wd,'/Data/SimulationEvaluation/'),
                        output = output ,filename = 'C7', factor ='depth.conf.factors',
                        covariate.type ='binary', sub.level ='DL3',
                        sub.level.rename = 'Depth confounding ++',sub.methods = sub.methods)
 
-plot.reactable8a(res.df2= res.obj1$res.df2, factor ='depth.conf.factors', diff.otu.mode =c('Abundant','Rare'),output =output, name = 'SupplementaryFigure7.DepthCounfounding.Stool++')
+plot.reactable8a(res.df2= res.obj1$res.df2, factor ='depth.conf.factors', diff.otu.mode =c('Abundant','Rare'),output =output, name = 'SupplementaryFigureS20.DepthCounfounding.Stool++')
 
 ##############################
-##Supplementary Figure 9 
-output = paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure9/');if(!(dir.exists(output))){dir.create(output)}
+##Supplementary Figure S23 
+output = paste0(wd,'/Result/SimulationEvaluation07192022/SupplementaryFigure9/');if(!(dir.exists(output))){dir.create(output)}
 methods <- c('mbzinb','Wilcox.gmpr','Rarefy','Wilcox',
              'eBayW', 'Aldex2', 'Maaslin2',
              'RAIDA', 'DACOMP', 'LDM', 
@@ -373,7 +375,7 @@ Methods <- c('Omnibus','GMPR+Wilcox','Rarefy+Wilcox','Wilcox',
              'RAIDA', 'DACOMP', 'LDM', 
              'GMPR+glm','corncob','ZicoSeq',
              'ANCOM-BC','GMPR+DESeq2','GMPR+edgeR', 'Wrench+MSeq')
-load('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/stability3.Rdata')
+load(paste0(wd,'/Data/SimulationEvaluation/stability3.Rdata'))
 sink(paste0(output,'stability.txt'))
 cat('correlation of p-values between filter vs nofilter \n')
 for(i in 1:length(methods)){
@@ -420,8 +422,8 @@ for(i in 1:length(methods)){
 sink()
 
 ##############################
-##Figure 10
-output = paste0(wd,'/Result/SimulationEvaluation/Figure10/');if(!(dir.exists(output))){dir.create(output)}
+##Fig. 6: heatmap
+output = paste0(wd,'/Result/SimulationEvaluation07192022/Figure10/');if(!(dir.exists(output))){dir.create(output)}
 sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
                 "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus",'MaAsLin2','ZicoSeq',
                 "Aldex2(Wilcox)","GMPR+glm","corncob","eBay(Wilcox)")
@@ -585,7 +587,7 @@ corr.sum = aggregate(Stability~methods, corr.sum, function(x) mean(x))
 corr.sum  = apply(corr.sum %>% column_to_rownames('methods'), 2, function(x) ifelse(x >0.9, 'Good', ifelse(x<0.7,'Poor','Intermediate'))) %>% as.data.frame() 
 
 ## bias DAs 
-load(paste0(wd,'/Data/SimulationEvaluation/StoolbinaryBiasDAs.Rdata'))
+load(paste0(wd,'/Data/SimulationEvaluation/old/StoolbinaryBiasDAs.Rdata'))
 Stool.bias = aggregate(ct ~ methods+depth.conf.factors, data = kb, function(x) mean(x))
 Stool.bias.binary.none.median = Stool.bias[Stool.bias$depth.conf.factors=='None',] 
 Stool.bias.binary.none.median$score = 'Intermediate'
@@ -635,7 +637,7 @@ sub.methods1 = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR
                  "Omnibus",'MaAsLin2',"GMPR+glm","Aldex2(Wilcox)",
                  "corncob","eBay(Wilcox)")
 ## 03/21/2021 add 
-load(paste0(wd,'/Data/SimulationEvaluation/baselineChanllenge.Rdata'))
+load(paste0(wd,'/Data/SimulationEvaluation/old/baselineChanllenge.Rdata'))
 head(vaginal);head(stool)
 
 heat.binary = full_join(vaginal, stool) %>%
@@ -754,14 +756,14 @@ ord.cl = colnames(dd)[dd1$order]
 d2 <- d2[,ord.cl]
 
 
-cols = c("Poor"=brewer.pal(8,'Set1')[1],"Good"=brewer.pal(8,'Set1')[3],"Intermediate"=brewer.pal(8,'Set2')[6])
+cols1 = c("Poor"=brewer.pal(8,'Set1')[1],"Good"=brewer.pal(8,'Set1')[3],"Intermediate"=brewer.pal(8,'Set2')[6])
 rowsplit = c(rep(as.character(unique(d1$class)[1]),table(d1$class)[1]),rep(as.character(unique(d1$class)[2]),table(d1$class)[2]),
              rep(as.character(unique(d1$class)[3]),table(d1$class)[3]),rep(as.character(unique(d1$class)[4]),table(d1$class)[4]))
 rowann = d1[,c('type','comp'),drop =F]
 ann_name <- rownames(d2)
 ann_name[grep('Depth confounding',ann_name)] <- 'Depth confounding'
 ann_name[grep('SmallSample',ann_name)] <- 'Small sample'
-ann_name[grep('SmallOTU',ann_name)] <- 'Small taxa'
+ann_name[grep('SmallOTU',ann_name)] <- 'Small number of taxa'
 ann_name[grep('Basic setting',ann_name)] <- 'Basic setting'
 ann_name[grep('NULLsetting',ann_name)] <- 'Global NULL'
 
@@ -769,7 +771,7 @@ row_ha = rowAnnotation(df = rowann, foo = anno_text(ann_name, location =0, just 
                        col = list(type = c("Other" = brewer.pal(8,'Dark2')[3], "Stool" = brewer.pal(8,'Dark2')[2],'Vaginal' = brewer.pal(8,'Dark2')[1]),
                                   comp = c("Unbalanced" = brewer.pal(8,'Pastel2')[1], "Balanced" = brewer.pal(8,'Pastel2')[2],"Other" = brewer.pal(8,'Pastel2')[3])))
 pdf(paste0(output,'Figure10.pdf'), width = 8, height = 9)
-ht = Heatmap(as.matrix(d2), col = cols,rect_gp = gpar(col = "white", lwd = 0.5), 
+ht = Heatmap(as.matrix(d2), col = cols1,rect_gp = gpar(col = "white", lwd = 0.5), 
              show_row_names =F,
              border = TRUE,row_split = rowsplit,
              right_annotation = row_ha)
@@ -779,35 +781,36 @@ dev.off()
 
 
 ###################
-### Supplementary  Figure  17 : consensus ensemble 
+### Supplementary  Figure  S25 : consensus ensemble 
 sub.methods = c("pct20","pct40","pct60","pct80")
-output = paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure15/');if(!(dir.exists(output))){dir.create(output)}
-load(paste0(wd,'/Data/SimulationEvaluation/consensusD4.Rdata'))
+output = paste0(wd,'/Result/SimulationEvaluation07192022/SupplementaryFigure15/');if(!(dir.exists(output))){dir.create(output)}
+load(paste0(wd,'/Data/SimulationEvaluation/old/consensusD4.Rdata'))
 plot.reactable8a(res.df2 %>% filter(methods %in% sub.methods), factor ='nOTUs',diff.otu.mode =c('Abundant','Rare'),output =output, name = 'Moderate.Vaginal.balanced.Ensemble')
-load(paste0(wd,'/Data/SimulationEvaluation/consensusC4.Rdata'))
-plot.reactable8a(res.df2 %>% filter(methods %in% sub.methods), factor ='nOTUs',diff.otu.mode =c('Abundant','Rare'),output =output, name = 'Moderate.Stool.Ensemble')
+load(paste0(wd,'/Data/SimulationEvaluation/old/consensusC4.Rdata'))
+plot.reactable8a(res.df2 %>% filter(methods %in% sub.methods), factor ='nOTUs',diff.otu.mode =c('Abundant','Rare'),output =output, name = 'Moderate.Stool.balanced.Ensemble')
 
-load(paste0(wd,'/Data/SimulationEvaluation/consensusD54.Rdata'))
+load(paste0(wd,'/Data/SimulationEvaluation/old/consensusD54.Rdata'))
 plot.reactable7b(res.df2=res.df2 %>% filter(diff.otu.modes=='Abundant' &nOTUs=='OTU=500'&methods %in% sub.methods), factor ='nOTUs',diff.otu.mode ='Abundant',output =output, name = 'Moderate.Vaginal.unbalanced.Ensemble')
-load(paste0(wd,'/data/SimulationEvaluation/consensusC54.Rdata'))
+load(paste0(wd,'/data/SimulationEvaluation/old/consensusC54.Rdata'))
 plot.reactable7b(res.df2 = res.df2 %>% filter(diff.otu.modes=='Abundant' &nOTUs=='OTU=500'&methods %in% sub.methods), factor ='nOTUs',diff.otu.mode ='Abundant',output =output, name = 'Moderate.Stool.unbalanced.Ensemble')
 
 
 
 ################
 ## plot for cumputation time for n=100, m = 500, here choose NOFILTER setting, which includes n=100, m = 500
-load('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/NOFILTER_res.Rdata')
+load(paste0(wd,'/Data/SimulationEvaluation/old/NOFILTER_res.Rdata'))
 sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'GMPR+Wilcox', 'GMPR+DESeq2','GMPR+edgeR','Wrench+MSeq',
                 "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus",'MaAsLin2','ZicoSeq',
                 "Aldex2(Wilcox)","GMPR+glm","corncob","eBay(Wilcox)")
-res.obj <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/'),
+res.obj <- clean_data(dir = paste0(wd,'/data/SimulationEvaluation/old/'),
                        output = output ,filename = 'NOFILTER', factor ='nOTUs', covariate.type ='binary', sub.level ='nOTU_L5', 
                        sub.level.rename = "OTU=500",sub.methods = sub.methods)
 time <- res.obj$res2 %>% filter(measures =='time' & diff.otu.pcts=='Low density')
 head(time)
+dim(time)
 mn.time <- data_summary(value ~ methods, data = time)
 mn.time <- mn.time[order(-mn.time$median),]
-write.csv(mn.time, file = paste0(wd,'/Result/SimulationEvaluation/time.csv'), row.names = F)
+write.csv(mn.time, file = paste0(wd,'/Result/SimulationEvaluation07192022/time.csv'), row.names = F)
 time <- within(time, methods <- factor(methods, levels=mn.time$methods))
 ggplot(time, aes(x = methods, y = value, color = methods)) + 
   theme_bw() +
@@ -815,12 +818,10 @@ ggplot(time, aes(x = methods, y = value, color = methods)) +
   geom_boxplot(outlier.alpha = 0) +
   geom_jitter(aes(colour = methods), width = 0.2, cex = 0.6, alpha = 0.4) +
   scale_color_manual(values = cols) +
-  # geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.4, size = 0.5,position=position_dodge2(.7, preserve = "single")) +
-  # scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) + 
   labs(y = 'time(seconds)', x = '', color = "", fill = '') +
-  theme(axis.text.x = element_text(color="black", size = 20, angle = 90, vjust = 1, hjust = 1),
-        axis.text.y = element_text(color="black", size = 20),
-        axis.title = element_text(color="black", size = 20),
+  theme(axis.text.x = element_text(color="black", size = 24, angle = 90, vjust = 0.4, hjust = 1),
+        axis.text.y = element_text(color="black", size = 24),
+        axis.title = element_text(color="black", size = 24),
         strip.text = element_text(size = 20),
         plot.margin = margin(1, 1, 1, 1, "cm"),
         strip.background = element_rect(fill="white",color = "black", size = 1),
@@ -828,7 +829,7 @@ ggplot(time, aes(x = methods, y = value, color = methods)) +
         panel.grid.minor = element_blank(),
         panel.border = element_rect(colour = "black",size= 1),
         legend.position = 'none')
-ggsave(paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure8.pdf'), width = 4,height = 6)
+ggsave(paste0(wd,'/Result/SimulationEvaluation07192022/Fig.S21.pdf'), width = 7,height = 7)
 
 
 
@@ -841,7 +842,7 @@ ggsave(paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure8.pdf'), width
 
 #########################
 ## From plotStability.R script
-load(paste0(wd,'/Data/SimulationEvaluation/stability3.Rdata'))
+load(paste0(wd,'/Data/SimulationEvaluation/old/stability3.Rdata'))
 corr= NULL
 for(i in 1:length(EST)){
   cor = as.data.frame(EST[[i]])
@@ -895,7 +896,8 @@ cat('RAIDA: \n')
 summary(raida$Stability)
 sink()
 
-write.csv(corr.sum.mean, file = paste0(wd,'/Data/SimulationEvaluation/stablity_summary.csv'),row.names = F)
+# write.csv(corr.sum.mean, file = paste0(wd,'/Data/SimulationEvaluation/stablity_summary.csv'),row.names = F)
+
 corr.sum <- corr.sum %>% filter(methods %in% sub.methods)
 corr.sum.mean = data_summary(corr.sum, Stability ~ methods) 
 corr.sum.mean = corr.sum.mean[order(-corr.sum.mean$median),]
@@ -914,10 +916,10 @@ ggplot(corr.sum, aes(x = methods, y = Stability, color = methods)) +
   geom_jitter(aes(colour = methods), width = 0.2, cex = 0.6, alpha = 0.4) +
   scale_color_manual(values = cols) +
   labs(y = 'Stability', x = '', color = "", fill = '') +
-  theme(axis.text.x = element_text(color="black", size = 24, angle = 90, vjust = 1, hjust = 1),
+  theme(axis.text.x = element_text(color="black", size = 24, angle = 90, vjust = 0.4, hjust = 1),
         axis.text.y = element_text(color="black", size = 24),
         axis.title = element_text(color="black", size = 24),
-        axis.ticks = element_blank(),
+        # axis.ticks = element_blank(),
         strip.text = element_text(size = 24),
         plot.margin = margin(1,1,1,1,'cm'),
         strip.background = element_rect(fill="white",color = "black", size = 1),
@@ -925,5 +927,10 @@ ggplot(corr.sum, aes(x = methods, y = Stability, color = methods)) +
         panel.grid.minor = element_blank(),
         panel.border = element_rect(colour = "black",size= 1),
         legend.position = 'none')
-ggsave(paste0(wd,'/Result/SimulationEvaluation/SupplementaryFigure9.pdf'), width = 4,height = 6)
+ggsave(paste0(wd,'/Result/SimulationEvaluation07192022/SupplementaryFigure9.pdf'), width = 7,height = 7)
+
+
+
+
+
 

@@ -1,12 +1,13 @@
 cols <- c('ZicoSeq'=brewer.pal(9,'Paired')[5], 'Omnibus' = brewer.pal(9,'PuBuGn')[7], 'mbzinb' = brewer.pal(9,'PuBuGn')[8], 
           'GMPR+glm' = brewer.pal(9,'PuRd')[3],'LinDA'=brewer.pal(9,'Set1')[8],'MaAsLin2'=brewer.pal(9,'Set1')[7],
-          'RAIDA'=brewer.pal(11,'BrBG')[7],'RioNorm2' = brewer.pal(11,'BrBG')[8],
-          'eBay(Wilcox)' = brewer.pal(8,'RdPu')[4],'eBay(t-test)' = brewer.pal(8,'RdPu')[6], 'ANCOM-BC' = brewer.pal(8,'Set2')[7],
-          'LDM'=brewer.pal(9,'Set1')[1], 'DACOMP'=brewer.pal(8,'Dark2')[6],'Aldex2(Wilcox)'=brewer.pal(8,'YlGn')[3],'Aldex2(t-test)'=brewer.pal(8,'YlGn')[2],
+          'RAIDA'=brewer.pal(11,'BrBG')[7],'ZINQ' = brewer.pal(11,'BrBG')[11],
+          'eBay(Wilcox)' = brewer.pal(8,'RdPu')[6],'eBay(t-test)' = brewer.pal(8,'RdPu')[2], 'ANCOM-BC' = brewer.pal(8,'Set2')[7],
+          'LDM'=brewer.pal(9,'Set1')[1], 'DACOMP'=brewer.pal(8,'Dark2')[6],
+          'Aldex2(Wilcox)'=brewer.pal(8,'YlGn')[3],'Aldex2(t-test)'=brewer.pal(8,'YlGn')[2],'Aldex2(glm)'=brewer.pal(8,'YlGn')[3],
           'corncob'=brewer.pal(11,'BrBG')[2],'DESeq2'=brewer.pal(9,'Greys')[7], 'Wrench+DESeq2'= brewer.pal(9,'Greys')[3], 'GMPR+DESeq2'=brewer.pal(9,'Greys')[5],
           'TSS+Wilcox'=brewer.pal(9,'Purples')[7],'Rarefy+Wilcox'= brewer.pal(9,'Set1')[5], 'GMPR+Wilcox'= brewer.pal(9,'Purples')[5], 'Wrench+Wilcox'= brewer.pal(9,'Purples')[3], 
           'TSS+Spearman'=brewer.pal(9,'Purples')[7],'Rarefy+Spearman'=brewer.pal(9,'Set1')[5], 'GMPR+Spearman'= brewer.pal(9,'Purples')[5], 
-          'TSS+t-test'=brewer.pal(9,'GnBu')[7],'Rarefy+t-test'= brewer.pal(9,'GnBu')[5], 'GMPR+t-test'= brewer.pal(9,'GnBu')[5], 'Wrench+t-test'= brewer.pal(9,'GnBu')[3], 
+          'IFAA'=brewer.pal(9,'GnBu')[7],'fastANCOM'= brewer.pal(9,'GnBu')[5], 'RDB'= brewer.pal(9,'GnBu')[3],  
           'edgeR'=brewer.pal(9,'Greens')[7], 'Wrench+edgeR'=brewer.pal(9,'Greens')[3], 'GMPR+edgeR'=brewer.pal(9,'Greens')[5], 
           'MSeq'=brewer.pal(9,'Blues')[7], 'Wrench+MSeq'=brewer.pal(9,'Blues')[5])
 
@@ -29,14 +30,15 @@ data_summary <- function(data, formula){
 }
 
 
-clean_null <- function(name, type.name, sub.methods){
-  # load(paste0('/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',name,'_res.Rdata'))
+clean_null <- function(name, type.name, sub.methods, root){
+  # load(paste0('~/Desktop/',name,'_res.Rdata'))
+  # load(paste0(root,'/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',name,'_res.Rdata'))
   # res0 <- melt(res)
   # colnames(res0) <- c('depth.mus', 'diff.otu.modes', 'model', 'nSub', 'nOTUs',
   #                     'covariate.types', 'depth.conf.factors', 'diff.otu.directs', 'confounder.types', 'nSams',
   #                     'covariate.eff.means', 'diff.otu.pcts','measures', 'methods', 'value','iters')
-  # save(res0,file = paste0('~/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/',name,'_melt.Rdata'))
-  load(paste0('~/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',name,'_melt.Rdata'))
+  # save(res0,file = paste0(root,'/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',name,'_melt.Rdata'))
+  load(paste0(root,'/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/Data/SimulationEvaluation/',name,'_melt.Rdata'))
   res1 = res0 %>% filter(nOTUs %in% c('nOTU_L1','nOTU_L5') & nSams %in% c('nSam_L1','nSam_L4') & measures =='FP') %>% 
     dplyr::select(nOTUs,nSams, covariate.types, depth.conf.factors, methods,value) %>% na.omit() %>%droplevels() 
   
@@ -74,16 +76,21 @@ clean_null <- function(name, type.name, sub.methods){
   res1$methods = gsub('^linda$','LinDA',res1$methods)
   res1$methods <- gsub('^mbzinb$','Omnibus', res1$methods)
   res1$methods <- gsub('Maaslin2','MaAsLin2', res1$methods)
-  
+
   res1 = res1 %>% filter(methods %in% sub.methods) %>% dplyr::select(covariate.types,depth.conf.factors,nOTUs, nSams, methods, value) 
   
   return(res= res1)
 }
 
+
+
+
+
+
 plot_FDR_kable <- function(data, covariate.type,kable.methods, type.name, 
-                           output = '/Users/m216453/Documents/Mayo_Research/SemiSimulation/Submit/DAA/result/SimulationEvaluation/'){
+                           output = '/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/Submit/DAA/result/SimulationEvaluation/'){
   ## For FDIs
-  df = data %>% filter(covariate.types==covariate.type) %>% dplyr::select(depth.conf.factors,nOTUs, nSams, methods, value) 
+  df = data %>% dplyr::filter(covariate.types==covariate.type) %>% dplyr::select(depth.conf.factors,nOTUs, nSams, methods, value) 
   df[df$value>0,'ct'] = 1
   df[df$value==0,'ct'] = 0
   df = df %>% dplyr::select(-value) 
@@ -91,7 +98,6 @@ plot_FDR_kable <- function(data, covariate.type,kable.methods, type.name,
   kb <- data_summary(df, as.formula(formula))
   kb <- kb[,colnames(kb)[c(1:5,9)]]
   colnames(kb) <- gsub('ymin','Low.CI',colnames(kb))
-  head(kb)
   
   kb[kb$ct > 0.2,'shape'] = 'x'
   kb[kb$ct <= 0.2 & kb$ct>0.1,'shape'] = '*'
@@ -99,7 +105,7 @@ plot_FDR_kable <- function(data, covariate.type,kable.methods, type.name,
   # kb[kb$Low.CI <= 0.05,'shape'] = '***'
   kb[kb$ct <= 0.05,'shape'] = '***'
   
-  x1 = kb %>% dplyr::select(depth.conf.factors,nOTUs, nSams, methods, shape) %>%filter(methods %in% kable.methods)
+  x1 = kb %>% dplyr::select(depth.conf.factors,nOTUs, nSams, methods, shape) %>%dplyr::filter(methods %in% kable.methods)
   x1$nOTUs = factor(x1$nOTUs, levels = c('OTU=50','OTU=500'))
   x1$nSams = factor(x1$nSams, levels = c('sample=50','sample=200'))
   x1$depth.conf.factors = factor(x1$depth.conf.factors, levels = c('Stool','Vaginal'))
@@ -133,7 +139,7 @@ plot_FDR_kable <- function(data, covariate.type,kable.methods, type.name,
     for(i in 1:nrow(data)){
       ct=c(ct,str_count(x4[i,j], "\\*") %>% sum())
     }
-    ct = gsub('^3$',brewer.pal(11,'PiYG')[9],ct)
+    ct = gsub('^3$',brewer.pal(8,'Paired')[2],ct)
     ct = gsub('^2$',brewer.pal(8,'Set2')[6],ct)
     ct = gsub('^1$',brewer.pal(8,'RdGy')[2],ct)
     ct = gsub('^0$',brewer.pal(12,'Set3')[9],ct)
@@ -164,33 +170,33 @@ plot_FDR_kable <- function(data, covariate.type,kable.methods, type.name,
   
   
   kbl(x4, align = 'c') %>%
-    kable_classic_2(full_width = F) %>% 
+    kable_classic_2(font_size = 16,full_width =F, html_font = "Helvetica") %>%
     add_header_above(c("Taxa number" = 1, "50" =2,"500" =2,"Score" = 1,"50" =2,"500" =2,"Score" = 1), bold = T) %>%
     add_header_above(c(" " = 1, "Stool" =4," " = 1, "Vaginal" = 4," " = 1), bold = T) %>%
     row_spec(0,bold=TRUE)  %>%
-    column_spec(2, background= count.ct(data = x4,2),bold = T) %>%
-    column_spec(3, background= count.ct(data = x4,3),bold = T) %>%
-    column_spec(4, background= count.ct(data = x4,4),bold = T) %>%
-    column_spec(5, background= count.ct(data = x4,5),bold = T) %>% 
-    column_spec(7, background= count.ct(data = x4,7),bold = T) %>% 
-    column_spec(8, background= count.ct(data = x4,8),bold = T) %>% 
-    column_spec(9, background= count.ct(data = x4,9),bold = T) %>% 
-    column_spec(10, background= count.ct(data = x4,10),bold = T) %>% 
-    column_spec(11, color = count.score(data = x4, j = 11,color1 = 'white', color2 = 'black'),
-                background = count.score(data = x4, j = 11,color1 = brewer.pal(8,'Dark2')[1], color2 = 'white')) %>%
-    column_spec(6, color = count.score(data = x4, j = 6,color1 = 'white', color2 = 'black'),
-                background = count.score(data = x4, j = 6,color1 = brewer.pal(8,'Dark2')[1], color2 = 'white')) %>%
-    save_kable(file = paste0(output,'NULL/',covariate.type,'_FDI_Null.pdf'))
+    column_spec(2, background= count.ct(data = x4,2),bold = T, color = 'black') %>%
+    column_spec(3, background= count.ct(data = x4,3),bold = T, color = 'black') %>%
+    column_spec(4, background= count.ct(data = x4,4),bold = T, color = 'black') %>%
+    column_spec(5, background= count.ct(data = x4,5),bold = T, color = 'black') %>% 
+    column_spec(7, background= count.ct(data = x4,7),bold = T, color = 'black') %>% 
+    column_spec(8, background= count.ct(data = x4,8),bold = T, color = 'black') %>% 
+    column_spec(9, background= count.ct(data = x4,9),bold = T, color = 'black') %>% 
+    column_spec(10, background= count.ct(data = x4,10),bold = T, color = 'black') %>% 
+    column_spec(11, color = count.score(data = x4, j = 11,color1 = 'black', color2 = 'black'),
+                background = count.score(data = x4, j = 11,color1 = 'white', color2 = 'white')) %>%
+    column_spec(6, color = count.score(data = x4, j = 6,color1 = 'black', color2 = 'black'),
+                background = count.score(data = x4, j = 6,color1 = 'white', color2 = 'white')) %>%
+    kableExtra::save_kable(file = paste0(output,'NULL/',covariate.type,'_FDI_Null.pdf'))
   
 }
 
 
 
-clean_data <- function(dir = '~/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/', 
-                       output ='~/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/',
+clean_data <- function(dir = '/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/', 
+                       output ='/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/',
                        filename = 'C1', factor ='covariate.eff.means', covariate.type ='binary',sub.level = c('L2','L4'),
                        sub.level.rename = c('Weak effect','Strong effect'), diff.otu.mode = c('abundant','rare'),
-                       sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'Wrench+DESeq2','Wrench+edgeR','Wrench+MSeq',
+                       sub.methods = c("Rarefy+Wilcox","TSS+Wilcox",'Wrench+DESeq2','Wrench+edgeR','Wrench+MSeq','ZINQ',
                                        "RAIDA","ANCOM-BC","DACOMP","LDM","Omnibus","Aldex2(Wilcox)","Wrench+glm","corncob","eBay(Wilcox)")
 ){
   load(paste0(dir,filename,'_res.Rdata'))
@@ -247,7 +253,7 @@ clean_data <- function(dir = '~/Documents/Mayo_Research/SemiSimulation/DAMethods
   res1$methods = gsub('^linda$','LinDA',res1$methods)
   res1$methods = gsub('^mbzinb$','Omnibus', res1$methods)
   res1$methods = gsub('^Maaslin2$','MaAsLin2', res1$methods)
-  
+
   res2 <- dplyr::filter(res1, methods %in% sub.methods & covariate.types == covariate.type) %>% dplyr::select(-covariate.types)%>% 
     separate(iters, c('iters','m'),'-') %>% dplyr::select(-m) %>%
     tidyr::complete(diff.otu.modes,!!as.name(factor),diff.otu.pcts, methods, measures, iters) %>% na.omit() %>% droplevels()
@@ -287,7 +293,7 @@ clean_data <- function(dir = '~/Documents/Mayo_Research/SemiSimulation/DAMethods
 
 
 plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mode =c('Abundant','Rare'),name='',
-                             output ='~/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/Depth/'){
+                             output ='/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/Depth/'){
   fdr = aggregate(value~., data= res.df2 %>% filter(measures =='FDR' & diff.otu.modes %in% diff.otu.mode) %>% dplyr::select(as.symbol(factor),diff.otu.pcts, diff.otu.modes, methods,value) , function(x)  mean(x[!is.na(x)])) %>%
     unite('grp',c('diff.otu.modes','diff.otu.pcts',factor)) %>% spread(c('grp'), value)
   fdr[is.na(fdr)] = 100
@@ -353,7 +359,7 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
     tpr[,i] = format(round(tpr[,i], digits = 2), nsmall = 2)
   }
   
-  bar_chart <- function(label, width = "100%", height = "10px", fill = "forestgreen", background = NULL) {
+  bar_chart <- function(label, width = "100%", height = "15px", fill = "forestgreen", background = NULL) {
     bar <- div(style = list(background = fill, width = width, height = height))
     chart <- div(style = list(flexGrow = 1, marginLeft = "1px", background = background), bar)
     div(style = list(display = "flex", alignItems = "center"), label, chart)
@@ -361,7 +367,7 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   
   get_color <- function(fdr){
     if(fdr =='***'){
-      col = brewer.pal(8,'Dark2')[5]
+      col = brewer.pal(8,'Paired')[2]
     }else if(fdr =='**'){
       col = brewer.pal(8,'Set2')[6]
     }else if(fdr =='*'){
@@ -399,7 +405,7 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
       
       style.func <- function(value, index, name) {
         color <- color_list[[name]][index]
-        list(fontWeight = 800, fontSize = 16,color = color)
+        list(fontWeight = 800, fontSize = 24,color = color)
       }
       
       coldefs <- list(
@@ -421,25 +427,25 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   color_list <- coldefs.list(numcols)[[2]]
   
   minW = 39
-  coldefs_list[[colnames(tpr)[1]]] = colDef(minWidth = 120, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[1]]] = colDef(minWidth = 122, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[1]
     name <- tpr[,1][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
-  coldefs_list[[colnames(tpr)[9]]] = colDef(name = "TPR",minWidth = minW, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[9]]] = colDef(name = "TPR",minWidth = 43, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[9]
     name <- tpr[,9][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
-  coldefs_list[[colnames(tpr)[8]]] = colDef(name = "FDR",minWidth = minW, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[8]]] = colDef(name = "FDR",minWidth = 44, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[8]
     name <- tpr[,8][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
   
@@ -448,7 +454,7 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   # tpr[,'TPR score'] <- rank(tpr[,'TPR score'])
   html_file <- paste0(output,name,'_NonCompostional.html')
   tb <- reactable(tpr, pagination=FALSE,resizable = FALSE, wrap = FALSE, bordered = F,
-                  style = list(fontFamily = "Work Sans, sans-serif", fontSize = "16px"),
+                  style = list(fontFamily = "Helvetica", fontSize = "24px"),
                   theme = reactableTheme(
                     headerStyle = list(
                       "&:hover[aria-sort]" = list(background = "#f7f7f8"),
@@ -468,14 +474,14 @@ plot.reactable8a <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   
   
   img_file <- paste0(output,name,'_NonCompostional.png')
-  webshot(url = html_file, file = img_file, vwidth = 1300, vheight = 1000, zoom = 3)
+  webshot(url = html_file, file = img_file, vwidth = 1300, vheight = 300, zoom = 7)
 }
 
 
 
 
 plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mode =c('Abundant'), name = '', 
-                             output ='~/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/Depth/'){
+                             output ='/Users/m216453/Library/Mobile Documents/com~apple~CloudDocs/Documents/Mayo_Research/SemiSimulation/DAMethodsEvaluation/data/SimulationEvaluation/Depth/'){
   fdr = aggregate(value~., data= res.df2 %>% filter(measures =='FDR' & diff.otu.modes %in% diff.otu.mode) %>% droplevels()%>% dplyr::select(diff.otu.pcts,  methods,value) , function(x)  mean(x[!is.na(x)])) %>%
     unite('grp',c('diff.otu.pcts')) %>% spread(c('grp'), value)
   fdr[is.na(fdr)] = 100
@@ -538,7 +544,7 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
     tpr[,i] = format(round(tpr[,i], digits = 2), nsmall = 2)
   }
   
-  bar_chart <- function(label, width = "100%", height = "10px", fill = "forestgreen", background = NULL) {
+  bar_chart <- function(label, width = "100%", height = "15px", fill = "forestgreen", background = NULL) {
     bar <- div(style = list(background = fill, width = width, height = height))
     chart <- div(style = list(flexGrow = 1, marginLeft = "1px", background = background), bar)
     div(style = list(display = "flex", alignItems = "center"), label, chart)
@@ -546,7 +552,7 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   
   get_color <- function(fdr){
     if(fdr =='***'){
-      col = brewer.pal(8,'Dark2')[5]
+      col = brewer.pal(8,'Paired')[2]
     }else if(fdr =='**'){
       col = brewer.pal(8,'Set2')[6]
     }else if(fdr =='*'){
@@ -583,7 +589,7 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
       
       style.func <- function(value, index, name) {
         color <- color_list[[name]][index]
-        list(fontWeight = 800, fontSize = 16,color = color)
+        list(fontWeight = 800, fontSize = 24,color = color)
       }
       
       coldefs <- list(
@@ -605,25 +611,25 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   color_list <- coldefs.list(numcols)[[2]]
   
   minW = 39
-  coldefs_list[[colnames(tpr)[1]]] = colDef(minWidth = 120, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[1]]] = colDef(minWidth = 122, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[1]
     name <- tpr[,1][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
-  coldefs_list[[colnames(tpr)[5]]] = colDef(name = "FDR",minWidth = minW, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[5]]] = colDef(name = "FDR",minWidth = 44, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[5]
     name <- tpr[,5][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
-  coldefs_list[[colnames(tpr)[6]]] = colDef(name = "TPR",minWidth = minW, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[6]]] = colDef(name = "TPR",minWidth = 43, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[6]
     name <- tpr[,6][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
   
@@ -631,7 +637,7 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
   # tpr[,'TPR score'] <- rank(tpr[,'TPR score'])
   html_file <- paste0(output,name,'_Compostional.html')
   tb <- reactable(tpr, pagination=FALSE,resizable = FALSE, wrap = FALSE, bordered = F,
-                  style = list(fontFamily = "Work Sans, sans-serif", fontSize = "16px"),
+                  style = list(fontFamily = "Helvetica", fontSize = "24px"),
                   theme = reactableTheme(
                     headerStyle = list(
                       "&:hover[aria-sort]" = list(background = "#f7f7f8"),
@@ -643,13 +649,14 @@ plot.reactable7b <- function(res.df2, factor = 'depth.conf.factors', diff.otu.mo
                     colGroup(name = '', columns = colnames(tpr)[1]),
                     colGroup(name = gsub('.*\\.','', name), columns = colnames(tpr)[2:4]),
                     colGroup(name = "Rank", columns = colnames(tpr)[5:6])),
-                  columns = coldefs_list
+                  columns = coldefs_list,
+                  
   )
   saveWidget(widget = tb, file = html_file, selfcontained = TRUE)
   
   
   img_file <- paste0(output,name,'_Compostional.png')
-  webshot(url = html_file, file = img_file, vwidth = 800, vheight = 1000, zoom = 3)
+  webshot(url = html_file, file = img_file, vwidth = 850, vheight = 1000, zoom = 10)
   
 }
 
@@ -807,8 +814,8 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
   fdr = as.data.frame(fdr) %>% rownames_to_column('methods')
   
   
-  data1 <- rbind(res.obj$df1 %>% mutate(scenario = 'stool_balanced') %>% dplyr::select(-factor) %>% filter(methods %in% c(target.method,best[1])),
-                 res.obj$df2 %>% mutate(scenario = 'vaginal_balanced')%>% dplyr::select(-factor) %>% filter(methods %in% c(target.method,best[2])))
+  data1 <- rbind(res.obj$df1 %>% mutate(scenario = 'stool_balanced') %>% dplyr::select(-factor) %>% dplyr::filter(methods %in% c(target.method,best[1])),
+                 res.obj$df2 %>% mutate(scenario = 'vaginal_balanced')%>% dplyr::select(-factor) %>% dplyr::filter(methods %in% c(target.method,best[2])))
   
   tpr <- data1 %>% filter(measures %in% 'TPR') %>% dplyr::select(scenario, diff.otu.pcts, diff.otu.modes, methods,value)  %>%
     unite('grp',c('diff.otu.modes','diff.otu.pcts')) %>% spread(c('grp'), value)  %>% unite('methods',c('scenario','methods'), sep = ': ')
@@ -903,7 +910,7 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
   colnames(fdr) <- gsub('Methods ', 'Signal density ',colnames(fdr))
   
   ##-------- design table --------
-  bar_chart <- function(label, width = "100%", height = "10px", fill = "forestgreen", background = NULL) {
+  bar_chart <- function(label, width = "100%", height = "15px", fill = "forestgreen", background = NULL) {
     bar <- div(style = list(background = fill, width = width, height = height))
     chart <- div(style = list(flexGrow = 1, marginLeft = "1px", background = background), bar)
     div(style = list(display = "flex", alignItems = "center"), label, chart)
@@ -911,7 +918,7 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
   
   get_color <- function(fdr){
     if(fdr =='***'){
-      col = brewer.pal(8,'Dark2')[5]
+      col = brewer.pal(8,'Paired')[2]
     }else if(fdr =='**'){
       col = brewer.pal(8,'Set2')[6]
     }else if(fdr =='*'){
@@ -964,7 +971,7 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
       
       style.func <- function(value, index, name) {
         color <- color_list[[name]][index]
-        list(fontWeight = 800, fontSize = 16,color = color)
+        list(fontWeight = 800, fontSize = 24,color = color)
       }
       
       coldefs <- list(
@@ -1005,27 +1012,27 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
                                   }
                                 }
                               }"),
-                                            minWidth = 90, align = 'center', cell = function(value, index) {
+                                            minWidth = 65, align = 'center', cell = function(value, index) {
                                               name = colnames(tpr)[1]
                                               name <- tpr[,1][index]
                                               tagList(
-                                                div(style = list(fontWeight = 600, fontSize = 16), name)
+                                                div(style = list(fontWeight = 600, fontSize = 24), name)
                                               )
                                             })
   
-  coldefs_list[[colnames(tpr)[2]]] = colDef(minWidth = 100, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[2]]] = colDef(minWidth = 140, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[2]
     name <- tpr[,2][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
   
-  coldefs_list[[colnames(tpr)[9]]] = colDef(minWidth = 100, align = 'center', cell = function(value, index) {
+  coldefs_list[[colnames(tpr)[9]]] = colDef(minWidth = 140, align = 'center', cell = function(value, index) {
     name = colnames(tpr)[9]
     name <- tpr[,9][index]
     tagList(
-      div(style = list(fontWeight = 600, fontSize = 16), name)
+      div(style = list(fontWeight = 600, fontSize = 24), name)
     )
   })
   
@@ -1034,7 +1041,7 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
   tb <- reactable(tpr, 
                   pagination=FALSE,
                   resizable = FALSE, wrap = FALSE, bordered = F,
-                  style = list(fontFamily = "Work Sans, sans-serif", fontSize = "16px"),
+                  style = list(fontFamily = "Helvetica", fontSize = "24px"),
                   rowStyle = JS("
                 function(rowInfo, state) {
 
@@ -1071,7 +1078,7 @@ plot.reactable0222 <- function(res.obj, best, output, name, target.method = 'Zic
   
   
   img_file <- paste0(output,target.method,'_',name,'.png')
-  webshot(url = html_file, file = img_file, vwidth = 1800, vheight = 1000, zoom = 3)
+  webshot(url = html_file, file = img_file, vwidth = 1900, vheight = 1000, zoom = 7)
 }
 
 
@@ -1111,4 +1118,119 @@ tpr.class <- function(data, grp, level, name, patn = 'Medium\\ effect', patn2 = 
 
 
 
+
+
+
+plot.ref.balanced <- function(stool.df, vaginal.df, fig.lab = 'Balanced(small taxa)', balanced = T, output ){
+  col.ref <- c('ref.pct50%/excl.pct20%'=brewer.pal(9,'Paired')[5],'ref.pct40%/excl.pct10%'=brewer.pal(8,'Pastel1')[2])
+  them <- theme(axis.text.x = element_blank(),
+                axis.text.y = element_text(color="black", size = 20),
+                axis.title = element_text(color="black", size = 20),
+                axis.ticks.x = element_blank(),
+                title = element_text(size = 20),
+                legend.position = 'bottom',
+                plot.margin = margin(1, 1, 1, 1, "cm"),
+                legend.text = element_text(size = 20),
+                strip.text = element_text(size = 20)) 
+  
+  if(balanced ==T){
+    df <- res.obj1$res.df2
+    df$diff.otu.pcts <- gsub(' density','',df$diff.otu.pcts)
+    df <- within(df, diff.otu.pcts <- factor(diff.otu.pcts,levels=c('Low','Medium','High')))
+    
+    df$methods <- gsub('ZicoSeq$','ref.pct50%/excl.pct20%',df$methods)
+    df$methods <- gsub('ZicoSeq3$','ref.pct40%/excl.pct10%',df$methods)
+    
+    p1 <- ggplot(df %>% dplyr::filter(measures %in% 'TPR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(diff.otu.modes ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'TPR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('Stool')
+    p2 <- ggplot(df %>% dplyr::filter(measures %in% 'FDR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(diff.otu.modes ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'FDR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('')
+    
+    df <- res.obj2$res.df2
+    df$diff.otu.pcts <- gsub(' density','',df$diff.otu.pcts)
+    df <- within(df, diff.otu.pcts <- factor(diff.otu.pcts,levels=c('Low','Medium','High')))
+    
+    df$methods <- gsub('ZicoSeq$','ref.pct50%/excl.pct20%',df$methods)
+    df$methods <- gsub('ZicoSeq3$','ref.pct40%/excl.pct10%',df$methods)
+    
+    p3 <- ggplot(df %>% dplyr::filter(measures %in% 'TPR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(diff.otu.modes ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'TPR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('Vaginal')
+    p4 <- ggplot(df %>% dplyr::filter(measures %in% 'FDR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(diff.otu.modes ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'FDR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('')
+    b12 <- ggarrange(p1, p2, p3, p4, common.legend = T, legend = "bottom")
+    annotate_figure(b12, fig.lab = fig.lab,fig.lab.pos = "top.left",
+                    fig.lab.size = 20, fig.lab.face = 'bold')
+    ggsave(file = paste0(output,fig.lab,'.pdf'), width = 12, height = 10)
+  }
+
+  
+  
+  if(balanced ==F){
+    df <- rbind(res.obj1$res.df2 %>% mutate(type ='Stool'),res.obj2$res.df2 %>% mutate(type ='Vaginal')) %>% 
+      dplyr::filter(diff.otu.modes == 'Abundant') %>% droplevels()
+    df$diff.otu.pcts <- gsub(' density','',df$diff.otu.pcts)
+    df <- within(df, diff.otu.pcts <- factor(diff.otu.pcts,levels=c('Low','Medium','High')))
+    df$methods <- gsub('ZicoSeq$','ref.pct50%/excl.pct20%',df$methods)
+    df$methods <- gsub('ZicoSeq3$','ref.pct40%/excl.pct10%',df$methods)
+    
+    
+    p1 <- ggplot(df %>% dplyr::filter(measures %in% 'TPR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(type ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'TPR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('')
+    p2 <- ggplot(df %>% dplyr::filter(measures %in% 'FDR'), 
+                 aes(x = methods, y = value, fill = methods)) + 
+      geom_bar(stat = 'identity') + 
+      facet_grid(type ~ diff.otu.pcts) +
+      geom_errorbar(aes(ymax=ymax, ymin=ymin, linetype = NULL),  width=0.7, size = 0.2,
+                    position=position_dodge2(.7, preserve = "single")) +
+      scale_fill_manual(values = col.ref) +
+      labs(y = 'FDR', x = '', fill = '') + theme_bw() +
+      them +
+      ggtitle('')
+    
+    b12 <- ggarrange(p1, p2, common.legend = T, legend = "bottom")
+    annotate_figure(b12, fig.lab = fig.lab,fig.lab.pos = "top.left",
+                    fig.lab.size = 20, fig.lab.face = 'bold')
+    ggsave(file = paste0(output,fig.lab,'.pdf'), width = 12, height = 6)
+  }
+}
 
