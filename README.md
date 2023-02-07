@@ -4,5 +4,6 @@ Yang, L., Chen, J. A comprehensive evaluation of microbial differential abundanc
 If you are interested in semi-parametric simulation for microbiome data, please refer to functions "SimulateMSeq" in our R package GUniFrac. 
 
 If you are interested in differential abundance analysis of microbiome data or other omics data, please refer to functions "ZicoSeq" in our R package GUniFrac. ZicoSeq tutorial please see: https://cran.r-project.org/web/packages/GUniFrac/vignettes/ZicoSeq.html
+
 Installation and application please see: https://cran.r-project.org/web/packages/GUniFrac/index.html
 
